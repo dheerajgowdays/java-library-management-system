@@ -1,11 +1,9 @@
 package com.dheeraj.library;
 
 import com.dheeraj.library.Model.Book;
-import com.dheeraj.library.Model.BorrowBook;
 import com.dheeraj.library.Model.Librarian;
 import com.dheeraj.library.Model.Member;
 import com.dheeraj.library.Repository.BookRepository;
-import com.dheeraj.library.Repository.BorrowRecordRepository;
 import com.dheeraj.library.Repository.MemberRepository;
 import com.dheeraj.library.Service.service;
 import com.dheeraj.library.Util.IdGenerator;
@@ -66,7 +64,7 @@ public class Main {
                                 System.out.print("Enter the Book Type: ");
                                 String bookType = sc.nextLine();
 
-                                Book book = new Book(bookId, bookName, authorName, publishedYear, bookType, false);
+                                Book book = new Book(bookId, bookName, authorName, publishedYear, bookType, true);
                                 service.addBook(book);
 
                                 System.out.println("Book successfully added to the library!");
@@ -84,18 +82,22 @@ public class Main {
                 case 2:
                     //Borrow Book
                     System.out.println("----------------- Borrow Book ---------------------");
-                    System.out.println("Are You a Member ? (YES/NO)");
+                    System.out.print("Are You a Member ? (YES/NO)");
                     String mValidate = sc.nextLine();
                     if(Validation.Check(mValidate)){
-                        System.out.println("Enter Member Name: ");
+                        System.out.print("Enter Member Name: ");
                         String mName = sc.nextLine();
-                        System.out.println("Enter Password: ");
+                        System.out.print("Enter Password: ");
                         String mPassword = sc.nextLine();
                         if(Validation.MemberValidation(mName,mPassword)){
                             if(Validation.FineValidation(mName)){
-                                System.out.println("Enter the book Id: ");
+                                System.out.print("Enter the book Id: ");
                                 long bBookId = sc.nextLong();
-                                service.borrowBoook(bBookId,mName);
+                                if(BookRepository.getBookById(bBookId)){
+                                    service.borrowBook(bBookId,mName);
+                                }else{
+                                    System.out.println("Check if the Book is Available or Book Exists");
+                                }
                             }else{
                                 System.out.println("Clear the fine to Borrow Book");
                             }
@@ -108,6 +110,20 @@ public class Main {
                     break;
                 case 3:
                     //Return Book
+                    System.out.println("\n=================== Return Books ===================");
+                    System.out.println("Enter the Member Name:");
+                    String rMemberName = sc.nextLine();
+                    System.out.print("Enter Password: ");
+                    String rPassword = sc.nextLine();
+                    if(Validation.MemberValidation(rMemberName,rPassword)){
+                        System.out.print("Enter the book Id: ");
+                        long bBookId = sc.nextLong();
+                        if(MemberRepository.bookPresent(rMemberName,bBookId)){
+                            service.returnBook(bBookId,rMemberName);
+                        }else{
+                            System.out.println("This Book is Not Borrowed");
+                        }
+                    }
                     break;
                 case 4:
                     //Search
@@ -156,6 +172,17 @@ public class Main {
                     break;
                 case 5:
                     //Fine Calculation
+                    System.out.println("\n=================== Fine Calculation ==================");
+                    System.out.println("Enter the Member Name: ");
+                    String fName = sc.nextLine();
+                    System.out.println("Enter the Password: ");
+                    String fPassword = sc.nextLine();
+                    if(Validation.MemberValidation(fName,fPassword)){
+                        service.getFine(fName);
+                    }else{
+                        System.out.println("Invalid ID or Password. Access Denied.");
+                    }
+
                     break;
                 case 6:
                     //Member Management only for librarian
@@ -189,7 +216,7 @@ public class Main {
                                         System.out.print("Enter Phone Number: ");
                                         long memberPNumber = sc.nextLong();
                                         sc.nextLine();
-                                        System.out.println("Enter a Password: ");
+                                        System.out.print("Enter a Password: ");
                                         String memberPassword = sc.nextLine();
                                         Member member = new Member(IdGenerator.generateMemberId(), memberName, memberPNumber,memberPassword,0);
                                         service.addMember(member);
